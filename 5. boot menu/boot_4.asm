@@ -143,6 +143,7 @@ recovery_mode:
 
 
 
+
 print_string:
     mov ah, 0x0E           ; BIOS teletype function
 .print_char:
