@@ -40,28 +40,56 @@ select_choice:
     
     mov dl, 28
     call set_cursor_position
- 
-; timer starts 
+    
+
     mov ah, 0x00    ; Function 0 - Get Real Time Clock (RTC)
     int 0x1A        ; BIOS interrupt
     mov cx, dx          ; Store timer tick count in cx
-    add cx, 91      ; for five seconds I have added the timer
-    mov si, cx
-
-    ; Wait for 5 seconds
-wait_loop:
-    ; Get current timer tick count
-    mov ah, 0x00        ; Function 0 - Get BIOS Timer Tick
-    int 0x1A            ; BIOS interrupt
-    cmp dx, si         ; Compare with the desired end time
-    jb wait_loop
-
-    mov dh,bh
-    mov dl, 28
-    call set_cursor_position
-    xor di,di
+    add cx, 182     ; for five seconds I have added the timer
+    mov [end_time], cx  
+    
+    xor di,di        ; clearing di register
     ; get input
 input:
+    mov ah, 0x00        ; Function 0 - Get BIOS Timer Tick
+    int 0x1A            ; BIOS interrupt
+    cmp dx, [end_time]          ; Compare with the desired end time
+    ja normal_mode
+
+      ; Calculate remaining time in seconds
+    mov ax, [end_time]
+    sub ax, dx
+    xor dx, dx
+    mov cx, 18      ; BIOS timer tick rate is approximately 18.2 ticks per second
+    div cx          ; Divide by the tick rate
+    add al, '0'     ; Convert to ASCII
+    mov [timer_value], al
+
+    ; Display the timer value
+    mov si, timer_msg
+    mov dh, 0x1    ; Set row for timer display
+    mov dl, 0x30   ; Set column for timer display
+    call set_cursor_position
+    call print_string
+
+    ; Display remaining time in seconds
+    mov si, timer_value
+    mov ah, 0x0E
+.print_timer_value:
+    lodsb
+    cmp al, 0
+    je .done
+    int 0x10
+    jmp .print_timer_value
+.done:
+    mov dh, bh
+    mov dl, 28
+    call set_cursor_position
+input_1:
+    mov ah, 0x01       ; checks if any key is pressed
+    int 0x16
+    jz input
+
     mov ax, 0x00             ; get keyboard input
     int 0x16                 ; hold for input
     cmp al, 0x08             ; Check if backspace key pressed
@@ -98,21 +126,28 @@ enter:
     call check_input
     hlt
 
+
 check_input:
     inc dh
     mov dl, 0x2              ; setting column for center pos
     call set_cursor_position
     cmp byte [si], '1'
-    je normal_mode
+    je normal_mode_1
     cmp byte [si], '2'
     je recovery_mode
 
     ; If input is neither 1 nor 2
     mov si, wrong_choice_msg
     call print_string
-    jmp select_choice
+    jmp input_1
 
 normal_mode:
+    mov dh, bh
+    inc dh
+    mov dl, 0x2              ; setting column for center pos
+    call set_cursor_position
+    call clear_row
+normal_mode_1:
     mov word [boot_mode], 1  ; Set boot mode to normal
     jmp load_kernel
 
@@ -166,13 +201,26 @@ set_cursor_position:
     popa
     ret
 
+clear_row:
+    pusha
+    mov ah, 0x0E             ; BIOS teletype function
+    mov al, ' '              ; Space character
+    mov cx, 80               ; Number of columns (width of row)
+.clear_loop:
+    int 0x10                 ; BIOS video interrupt to print character
+    loop .clear_loop         ; Loop until 80 spaces have been printed
+    popa
+    ret
+
 message db 'Boot Options', 0
 message_1 db '1. Normal Mode [Default mode]', 0
 message_2 db '2. Recovery Mode', 0
 message_3 db 'Select Your Choice (1/2) ', 0
-wrong_choice_msg db 'Wrong choice', 0
+wrong_choice_msg db 'Wrong choice, enter again', 0
 disk_error_msg db 'Disk read error!', 0
-
+timer_msg db 'Time remaining ', 0
+timer_value db '0', 0
+end_time dw 0
 input_buffer times 1 db 0
 boot_mode dw 0              ; variable to store boot mode
 
