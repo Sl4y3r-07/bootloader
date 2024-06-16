@@ -10,7 +10,7 @@ start:
     ; Set cursor position to the start (top-left corner)
     mov ah, 0x02    ; BIOS function to set cursor position
     mov bh, 0x00    ; Page number
-    mov dh, 0x02    ; Row (2)
+    mov dh, 0x00    ; Row (2)
     mov dl, 0x00    ; Column (0)
     int 0x10        ; Call BIOS video interrupt
 

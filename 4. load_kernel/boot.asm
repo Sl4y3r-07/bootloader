@@ -44,27 +44,6 @@ print_:
     int 0x13         ; BIOS disk interrupt
     jc disk_error    ; Jump if carry flag is set (error)
 
-    ; Print 'Kernel loaded successfully!' message
-;     mov si, kernel_loaded_msg
-;     mov cx, kernel_loaded_len
-
-;     mov dh, 0x02     ; Row (2)
-;     mov dl, 40       ; Column (40)
-;     shr cl, 1        ; Divide message length by 2
-;     sub dl, cl       ; Adjust for half the message length
-
-;     mov ah, 0x02     ; Set cursor position
-;     xor bh, bh       ; Page number 0
-;     int 0x10         ; BIOS video interrupt
-
-; print_kernel_loaded:
-;     mov ah, 0x0E     ; BIOS teletype output
-;     mov al, [si]     ; Load the next character
-;     int 0x10         ; BIOS video interrupt
-;     inc si           ; Move to the next character
-;     loop print_kernel_loaded
-
-    ; Jump to kernel entry point
     jmp 0x1000:0x0000
 
 disk_error:

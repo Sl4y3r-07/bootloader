@@ -157,25 +157,26 @@ recovery_mode:
 
 load_kernel:
     ; Load the kernel (assuming it's at sector 2)
-    mov ax, 0x0000
-    mov es, ax
+   
+    
     mov bx, 0x1000           ; Load address
-
+    mov es, bx
+    xor bx,bx
     mov ah, 0x02             ; BIOS read sectors function
     mov al, 1                ; Number of sectors to read
-    mov ch, 0                ; Cylinder number
+    xor ch,ch                ; Cylinder number
     mov cl, 2                ; Sector number (starting from 1)
-    mov dh, 0                ; Head number
+    xor dh,dh                ; Head number
     mov dl, 0x80             ; Drive number (0x80 = first hard drive)
     int 0x13                 ; BIOS disk interrupt
     jc disk_error            ; Jump if there was an error
 
     ; pass boot mode to kernel
     mov ax, [boot_mode]
-    mov [0x1000], ax
+    mov es:[0x200], ax
 
     ; jump to the kernel entry point
-    jmp 0x0000:0x1000
+    jmp 0x1000:0x0000
 
 disk_error:
     mov si, disk_error_msg
