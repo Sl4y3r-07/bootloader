@@ -25,11 +25,11 @@ xor bh,bh    ; default page number, 0
 int 0x10     ; BIOS video interrupt
 
 print_:
-    mov ah, 0x0e       ; BIOS function 0Eh, teletype output (print character)
-    mov al, [si]       ; Load the next character into AL
-    int 0x10           ; Call BIOS video interrupt
-    inc si             ; Move to the next character
-    loop print_ ; Repeat until CX is zero
+    mov ah, 0x0e       ; BIOS function 0Eh (print character)
+    mov al, [si]       ; load the next character into AL
+    int 0x10           ; call BIOS video interrupt
+    inc si             ; move to the next character
+    loop print_        ; repeat until CX is zero
 
 jmp $
 

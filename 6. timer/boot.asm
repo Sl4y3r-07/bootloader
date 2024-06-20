@@ -42,10 +42,10 @@ select_choice:
     call set_cursor_position
     
 
-    mov ah, 0x00    ; Function 0 - Get Real Time Clock (RTC)
+    mov ah, 0x00    ; function 0 -> get Real Time Clock (RTC)
     int 0x1A        ; BIOS interrupt
-    mov cx, dx          ; Store timer tick count in cx
-    add cx, 182     ; for five seconds I have added the timer
+    mov cx, dx      ; Store timer tick count in cx
+    add cx, 182     ; for ten seconds I have added the timer
     mov [end_time], cx  
     
     xor di,di        ; clearing di register
@@ -56,23 +56,23 @@ input:
     cmp dx, [end_time]          ; Compare with the desired end time
     ja normal_mode
 
-      ; Calculate remaining time in seconds
+      ; remaining time in seconds
     mov ax, [end_time]
     sub ax, dx
     xor dx, dx
     mov cx, 18      ; BIOS timer tick rate is approximately 18.2 ticks per second
-    div cx          ; Divide by the tick rate
-    add al, '0'     ; Convert to ASCII
+    div cx          ; divide by the tick rate
+    add al, '0'     ; convert to ASCII
     mov [timer_value], al
 
-    ; Display the timer value
+    ; display the timer value
     mov si, timer_msg
     mov dh, 0x1    ; Set row for timer display
     mov dl, 0x30   ; Set column for timer display
     call set_cursor_position
     call print_string
 
-    ; Display remaining time in seconds
+    ; display remaining time in seconds
     mov si, timer_value
     mov ah, 0x0E
 .print_timer_value:
@@ -156,9 +156,7 @@ recovery_mode:
     jmp load_kernel
 
 load_kernel:
-    ; Load the kernel (assuming it's at sector 2)
-   
-    
+    ; load the kernel 
     mov bx, 0x1000           ; Load address
     mov es, bx
     xor bx,bx
@@ -186,9 +184,9 @@ disk_error:
 print_string:
     mov ah, 0x0E             ; BIOS teletype function
 .print_char:
-    lodsb                    ; Load next byte from string into AL
+    lodsb                    ; load next byte from string into AL
     cmp al, 0
-    je .done                 ; If null-terminator, we're done
+    je .done                 ; 
     int 0x10                 ; BIOS video interrupt
     jmp .print_char
 .done:
@@ -205,11 +203,11 @@ set_cursor_position:
 clear_row:
     pusha
     mov ah, 0x0E             ; BIOS teletype function
-    mov al, ' '              ; Space character
-    mov cx, 80               ; Number of columns (width of row)
+    mov al, ' '              ; space character
+    mov cx, 80               ; number of columns (width of row)
 .clear_loop:
     int 0x10                 ; BIOS video interrupt to print character
-    loop .clear_loop         ; Loop until 80 spaces have been printed
+    loop .clear_loop         ; loop until 80 spaces have been printed
     popa
     ret
 

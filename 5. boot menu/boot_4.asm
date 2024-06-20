@@ -11,60 +11,36 @@ org 0x7c00
 
   ; for Boot Menu 
     mov si, message
-    mov cx, message_len
     mov dh, 0x1  ; setting row for center pos
     mov dl, 0x2  ; setting column for center pos
     mov ah, 0x02 ; for setting the cursor position
     xor bh,bh    ; default page number, 0
     int 0x10     ; BIOS video interrupt
-print_:
-    mov ah, 0x0e       ; BIOS function 0Eh, teletype output (print character)
-    mov al, [si]       ; Load the next character into AL
-    int 0x10           ; Call BIOS video interrupt
-    inc si             ; Move to the next character
-    loop print_        ; Repeat until CX is zero
+    call print_string       
 
   ; for Normal Mode
     mov si, message_1
-    mov cx, message_len_1
     inc dh
     mov ah, 0x02 ; for setting the cursor position
     xor bh,bh    ; default page number, 0
     int 0x10     ; BIOS video interrupt
-print_1:
-    mov ah, 0x0e       ; BIOS function 0Eh, teletype output (print character)
-    mov al, [si]       ; Load the next character into AL
-    int 0x10           ; Call BIOS video interrupt
-    inc si             ; Move to the next character
-    loop print_1 
+    call print_string 
 
 ; for Recovery Mode
     mov si, message_2
-    mov cx, message_len_2
     inc dh
     mov ah, 0x02 ; for setting the cursor position
     xor bh,bh    ; default page number, 0
     int 0x10     ; BIOS video interrupt
-print_2:
-    mov ah, 0x0e       ; BIOS function 0Eh, teletype output (print character)
-    mov al, [si]       ; Load the next character into AL
-    int 0x10           ; Call BIOS video interrupt
-    inc si             ; Move to the next character
-    loop print_2
+    call print_string
 
 ; for Selecting Choice
     mov si, message_3
-    mov cx, message_len_3
     inc dh
     mov ah, 0x02 ; for setting the cursor position
     xor bh,bh    ; default page number, 0
     int 0x10     ; BIOS video interrupt
-print_3:
-    mov ah, 0x0e       ; BIOS function 0Eh, teletype output (print character)
-    mov al, [si]       ; Load the next character into AL
-    int 0x10           ; Call BIOS video interrupt
-    inc si             ; Move to the next character
-    loop print_3
+    call print_string
     
     mov dl, 28
     mov ah, 0x02 ; for setting the cursor position
@@ -80,10 +56,10 @@ input:
     je backspace
     cmp al, 0x0d
     je enter
-    cmp al, 0x00        ; Check for special key (e.g., arrow keys)
-    je skip_input       ; Skip handling for special keys
-    cmp al, 0xE0        ; Check for extended key (e.g., arrow keys)
-    je skip_input       ; Skip handling for extended keys
+    cmp al, 0x00        ; check for special key (e.g., arrow keys)
+    je skip_input       ; skip handling for special keys
+    cmp al, 0xE0        ; check for extended key (e.g., arrow keys)
+    je skip_input       ; skip handling for extended keys
     inc dl  
     mov [input_buffer + di], al
     inc di            ; 
@@ -109,7 +85,6 @@ backspace:
     jmp input
 
 enter:
-     ;mov byte [input_buffer + di], 0
     mov si, input_buffer
     call check_input
     hlt
@@ -125,7 +100,7 @@ check_input:
     cmp byte [si], '2'
     je recovery_mode
 
-    ; If input is neither 1 nor 2, display error message
+    ; if input is neither 1 nor 2
     mov si, wrong_choice_msg
     call print_string
     jmp hehe
@@ -142,14 +117,12 @@ recovery_mode:
     jmp hehe
 
 
-
-
 print_string:
-    mov ah, 0x0E           ; BIOS teletype function
+    mov ah, 0x0E           
 .print_char:
-    lodsb                  ; Load next byte from string into AL
+    lodsb                  ; load next byte from string into AL
     cmp al, 0
-    je .done               ; If null-terminator, we're done
+    je .done               
     int 0x10               ; BIOS video interrupt
     jmp .print_char
 .done:
@@ -169,13 +142,13 @@ message_3 db 'Select Your Choice (1/2) ', 0
 message_len_3 equ $ - message_3
 
 wrong_choice_msg db 'Wrong choice', 0
-normal_msg db 'normal',0
-normal_msg_len equ $-normal_msg
-recovery_msg db 'recovery',0
-;wrong_choice_msg_len equ $- wrong_choice_msg
+normal_msg db '--> normal mode',0
+recovery_msg db '--> recovery mode',0
+
 
 input_buffer times 1 db 0
- hehe: jmp $
+hehe: 
+     jmp $
 times 510-($-$$) db 0 ; rest bytes with 0
 dw 0xaa55   ; boot sector signature/ magic number
 

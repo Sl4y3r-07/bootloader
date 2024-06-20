@@ -13,8 +13,9 @@ start:
     mov cx, 0       ; Upper left corner (row 0, column 0)
     mov dx, 0x184F  ; Lower right corner (row 24, column 79)
     int 0x10   
+
     ; Read boot mode from memory
-    mov ax, es:[0x200]  ; Boot mode is stored at address 0x0000
+    mov ax, es:[0x400]  ; Boot mode is stored at address 0x0000
     cmp ax, 1
     je normal_mode
     cmp ax, 2
@@ -28,8 +29,7 @@ start:
     mov si,unknown
     call print_string
     jmp done
-    
-    
+    ; If boot mode is not recognized, halt
     cli
     hlt
 
@@ -71,11 +71,11 @@ print_string:
     ret
 
 done:
-    cli                      ; disable interrupts
-    hlt                      ; halt the CPU
+    cli                      ; Disable interrupts
+    hlt                      ; Halt the CPU
 
-normal_mode_message db 'Normal Mode: Hi from Kernel :)', 0
-recovery_mode_message db 'Recovery Mode: Hi from Kernel :)', 0
-unknown db 'Dontknow',0
+normal_mode_message db 'Normal Mode: Hi from Kernel', 0
+recovery_mode_message db 'Recovery Mode: Hi from Kernel', 0
+unknown db 'Hello from the Kernel dear :)',0
 times 510 - ($ - $$) db 0
 dw 0xAA55
